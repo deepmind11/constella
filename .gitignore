@@ -1,0 +1,66 @@
+# Private interview-prep doc, never push
+how_it_works.md
+
+# Env / secrets
+.env
+.env.local
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# uv
+.uv/
+
+# VibeVoice cloned source (huge, install separately)
+external/
+
+# Large model files (download on first run)
+models/
+*.bin
+*.safetensors
+*.pt
+*.pth
+*.gguf
+
+# Audio scratch
+*.wav
+!demo/sample_*.wav
+*.mp3
+*.flac
+
+# Demo recording
+demo/demo.mp4
+!demo/demo_thumbnail.png
+
+# Eval scratch
+eval/results/raw/
+eval/results/*.csv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Hugging Face cache
+.cache/
+~/.cache/huggingface/

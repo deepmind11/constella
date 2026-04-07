@@ -1,0 +1,17 @@
+{
+  "scenario_id": "02_spanish_baseline",
+  "category": "spanish_baseline",
+  "description": "Patient speaks only Spanish. Primary should respond in Spanish; language specialist should report primary_lang='es'.",
+  "patient_file": "patient_maria.json",
+  "patient_turns": [
+    "Hola, sí, soy María. ¿Cómo está usted?",
+    "Esta mañana me la medí y estaba en 138.",
+    "Sí, tomé las dos pastillas con el desayuno como me dijo el doctor."
+  ],
+  "expected": {
+    "primary_lang": "es",
+    "any_escalation": false,
+    "any_medication_harm": false,
+    "any_labs_followup": false
+  }
+}

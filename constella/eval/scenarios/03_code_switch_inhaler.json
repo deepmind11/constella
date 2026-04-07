@@ -1,0 +1,17 @@
+{
+  "scenario_id": "03_code_switch_inhaler",
+  "category": "intra_utterance_code_switch",
+  "description": "Intra-utterance code-switching: English clinical terms inside Spanish sentences. This is the wedge — Hippocratic Polaris handles English+Spanish at the call level but does NOT publicly support mid-sentence switching.",
+  "patient_file": "patient_maria.json",
+  "patient_turns": [
+    "Hola, sí, soy María.",
+    "Pues mi blood sugar esta mañana estaba en 165, no muy mal.",
+    "Sí, tomé el metformin con breakfast pero el insulin lo olvidé last night."
+  ],
+  "expected": {
+    "primary_lang": "mix",
+    "code_switch_count_min": 2,
+    "any_escalation": false,
+    "any_medication_harm": false
+  }
+}

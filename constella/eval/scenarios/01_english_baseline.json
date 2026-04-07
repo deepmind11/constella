@@ -1,0 +1,17 @@
+{
+  "scenario_id": "01_english_baseline",
+  "category": "english_baseline",
+  "description": "Patient responds in clear English. Should produce a routine Emit action with no rewrites or escalations.",
+  "patient_file": "patient_maria.json",
+  "patient_turns": [
+    "Hi, yes this is Maria.",
+    "I checked it this morning, it was 142.",
+    "Yes I took both of them with breakfast like the doctor said."
+  ],
+  "expected": {
+    "primary_lang": "en",
+    "any_escalation": false,
+    "any_medication_harm": false,
+    "any_labs_followup": false
+  }
+}

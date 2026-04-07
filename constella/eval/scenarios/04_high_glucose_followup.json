@@ -1,0 +1,17 @@
+{
+  "scenario_id": "04_high_glucose_followup",
+  "category": "labs_followup",
+  "description": "Patient reports a glucose value above the safe-range cutoff. Labs specialist should flag out-of-range and trigger AppendFollowup.",
+  "patient_file": "patient_maria.json",
+  "patient_turns": [
+    "Yes, this is Maria.",
+    "I checked my sugar this morning and it was 287.",
+    "I feel a little tired but I'm not dizzy or anything."
+  ],
+  "expected": {
+    "primary_lang": "en",
+    "any_labs_followup": true,
+    "expect_action_kinds": ["append", "emit"],
+    "any_escalation": false
+  }
+}

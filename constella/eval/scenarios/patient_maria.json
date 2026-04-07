@@ -1,0 +1,47 @@
+{
+  "name": "María González",
+  "age": 58,
+  "pronouns": "she/her",
+  "primary_language": "es",
+  "secondary_language": "en",
+  "conditions": [
+    "Type 2 Diabetes Mellitus",
+    "Hypertension",
+    "Mild diabetic neuropathy"
+  ],
+  "medications": [
+    {
+      "name": "Metformin",
+      "dose_mg": 1000,
+      "frequency": "twice daily with meals",
+      "indication": "Type 2 diabetes"
+    },
+    {
+      "name": "Lisinopril",
+      "dose_mg": 20,
+      "frequency": "once daily in the morning",
+      "indication": "Hypertension"
+    },
+    {
+      "name": "Atorvastatin",
+      "dose_mg": 40,
+      "frequency": "once daily at bedtime",
+      "indication": "Cholesterol"
+    },
+    {
+      "name": "Insulin glargine (Lantus)",
+      "dose_mg": null,
+      "frequency": "20 units subcutaneously at bedtime",
+      "indication": "Type 2 diabetes basal insulin"
+    }
+  ],
+  "discharge_summary": "58yo F with T2DM and HTN, admitted 3 days ago for hyperglycemia (admission glucose 412). Stabilized on basal insulin glargine 20u qhs added to existing metformin 1000mg BID. BP well-controlled on lisinopril. Discharged home with glucometer training, instructed to check fasting glucose daily and call if FBG < 70 or > 250. Follow up with PCP in 7 days.",
+  "last_labs": {
+    "glucose_admit": 412,
+    "glucose_discharge": 168,
+    "a1c": 9.2,
+    "systolic_bp": 132,
+    "diastolic_bp": 78,
+    "creatinine": 0.9
+  }
+}
