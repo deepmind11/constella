@@ -156,12 +156,6 @@ Spanish is "experimental" per Microsoft's docs. Document this honestly in the RE
 
 ## Next steps after setup
 
-1. Read [how_it_works.md](how_it_works.md) (private, gitignored) — your interview prep doc
-2. Run the eval harness, paste results into the README
-3. Record a 60-second demo video to `demo/demo.mp4`
-4. Push to https://github.com/deepmind11/constella
-5. Reference Constella in:
-   - Hippocratic AI Engineer cover letter
-   - Cold InMail to Margaret Urban (after verifying her current employer)
-   - Cold InMail to Subho Mukherjee (CSO)
-   - Recruiter messages
+1. Run the eval harness and paste results into the README results table
+2. Read [how_it_works.md](how_it_works.md) for a detailed technical walkthrough of each architectural decision
+3. Record a demo video (`demo/demo.mp4`) of a code-switching scenario end-to-end

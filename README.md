@@ -2,8 +2,6 @@
 
 > A multi-agent voice constellation for bilingual healthcare follow-up calls, with first-class English-Spanish code-switching support. Built on Microsoft VibeVoice end-to-end.
 
-**Status:** Active build (started 2026-04-07). 2-day sprint.
-**Author:** Harshit Ghosh
 **License:** Apache 2.0
 
 ---
@@ -14,16 +12,14 @@ Constella is a miniature, runnable, evaluable implementation of a Polaris-style 
 
 The use case is intentionally narrow: post-discharge follow-up calls for a Type 2 diabetic patient who code-switches between English and Spanish.
 
-## Why I built this
+## Background
 
-I read the [Polaris paper](https://arxiv.org/abs/2403.13313) (Mukherjee et al., 2024) and the [WellSpan colorectal cancer screening study](https://www.medrxiv.org/content/10.1101/2024.12.16.24318586v1) (Bhimani and Baker, 2024) and noticed two things:
+Two research observations motivated this project:
 
-1. **Polaris 3.0 reports 99.83% Spanish accuracy** and supports 14 languages with real-time multilingual auto-switch. Hippocratic AI's Spanish-language voice agent achieved a **2.6x higher FIT-test opt-in rate** among Spanish-speaking patients vs English-speaking patients in the WellSpan study. Bilingual healthcare AI is producing real clinical-economic impact, not just demos.
-2. **Intra-utterance code-switching** (where a bilingual speaker mixes English and Spanish *within a single sentence*: "¿Tomo el inhaler dos veces al día, but only when I feel short of breath?") is endemic in U.S. Latino patient populations, but I could not find an explicit treatment of it in any of the published Polaris papers.
+1. **Bilingual healthcare AI drives measurable clinical outcomes.** The [WellSpan colorectal cancer screening study](https://www.medrxiv.org/content/10.1101/2024.12.16.24318586v1) (Bhimani and Baker, 2024) found a 2.6x higher FIT-test opt-in rate among Spanish-speaking patients when contacted in their primary language. Published multilingual voice agents (e.g., Polaris 3.0) report 99.83% Spanish accuracy across 14 languages with real-time auto-switch.
+2. **Intra-utterance code-switching** — where a bilingual speaker mixes English and Spanish *within a single sentence* ("¿Tomo el inhaler dos veces al día, but only when I feel short of breath?") — is endemic in U.S. Latino patient populations and is not explicitly treated in the published literature on healthcare voice agents.
 
-Around the same time, Microsoft released [VibeVoice](https://github.com/microsoft/VibeVoice), the first open-source ASR model that natively handles **code-switching across 50+ languages with no language parameter required**. I wanted to know: what happens if you build a Polaris-style constellation entirely on VibeVoice? Does it handle code-switching gracefully? How does end-to-end latency compare to Hippocratic's published 2.2-sec target?
-
-Constella is my attempt to answer these questions in a 2-day build.
+Microsoft's [VibeVoice](https://github.com/microsoft/VibeVoice) is the first open-source ASR model with native intra-utterance code-switching support across 50+ languages, requiring no language parameter. Constella explores what a Polaris-style safety constellation looks like when built end-to-end on VibeVoice, and whether the architecture handles code-switching gracefully at low latency.
 
 ## Architecture
 
@@ -157,11 +153,11 @@ Results table (will be filled in as the eval runs):
 - **A medical product.** Constella is a non-diagnostic engineering demo with synthetic patients. **No PHI ever touches the system.**
 - **A novel research contribution.** Constella builds on the constellation pattern from Mukherjee et al. (Polaris, 2024), the multilingual code-switching capability from Microsoft VibeVoice (2025), and the WellSpan colorectal study from Bhimani and Baker (2024).
 
-## What I would love to discuss
+## Open Questions
 
-1. How does Polaris handle intra-utterance code-switching in production today?
-2. The Language Specialist routing pattern used here: does it map to anything in the Polaris stack?
-3. The Grove AI acquisition opens a new product surface (clinical trial recruitment). My background is in oncology cfDNA pipeline engineering at BillionToOne. How is the new Life Sciences Division thinking about integrating bioinformatics data into Grace?
+1. How do production-scale healthcare voice agents handle intra-utterance code-switching at the ASR and prompt-routing layers?
+2. Does the Language Specialist routing pattern (per-utterance language ID → route primary prompt to ES/EN/MIX) hold up under code-switching registers beyond Spanglish?
+3. At what specialist count does the parallelization overhead begin to outweigh latency savings relative to a serial specialist pipeline?
 
 ## References
 
@@ -171,6 +167,3 @@ Results table (will be filled in as the eval runs):
 4. **VibeVoice:** Microsoft (2025). *VibeVoice: Open-Source Frontier Voice AI.* https://github.com/microsoft/VibeVoice
 5. **RWE-LLM evaluation framework:** Hippocratic AI (2025). *Real-World Evaluation of LLMs in Healthcare.* medRxiv 10.1101/2025.03.17.25324157.
 
-## Author
-
-**Harshit Ghosh** — bilingual bioinformatics engineer with three years building production data pipelines and multi-agent systems in regulated healthcare environments. Previously at BillionToOne (oncology cfDNA, NorthStar Select Assay) and Columbia University (computational biology). Spanish at professional working level. Reach me at harshitghosh@gmail.com or [LinkedIn](https://linkedin.com/in/harshit-ghosh).
