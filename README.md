@@ -10,7 +10,7 @@
 
 Constella is a runnable implementation of a Polaris-style safety constellation for voice-based healthcare AI. One stateful primary conversational agent ("Nurse Ana") drives the dialogue; four stateless specialist verifier agents (language, medication, labs, escalation) run in parallel after every primary turn, and an orchestrator merges their verdicts into a single next action.
 
-The use case is a post-discharge follow-up call with a bilingual Type 2 diabetic patient who code-switches between English and Spanish mid-utterance. The voice I/O layer targets [Microsoft VibeVoice](https://github.com/microsoft/VibeVoice) for GPU deployments; the portable Gradio demo falls back to Groq Whisper (ASR) and gTTS (TTS).
+The use case is a post-discharge follow-up call with a bilingual Type 2 diabetic patient who code-switches between English and Spanish mid-utterance. The voice I/O layer targets [Microsoft VibeVoice](https://github.com/microsoft/VibeVoice) for GPU deployments; the portable Gradio demo uses Groq-hosted Whisper for ASR and Google gTTS for TTS (see [Tech Stack](#tech-stack) for the full model / provider breakdown).
 
 ## Quick Start
 
@@ -133,11 +133,21 @@ Results write to `constella/eval/results/<timestamp>.md` (human-readable report)
 
 ## Tech Stack
 
+**Models and providers** — Groq is the LLM inference provider for everything text-related; it also hosts Whisper for ASR. gTTS is Google's TTS. VibeVoice is self-hosted on GPU for the production path.
+
+| Pipeline stage | Model | Provider |
+|---|---|---|
+| ASR (speech → text), demo | `whisper-large-v3-turbo` | Groq API |
+| ASR (speech → text), prod target | `VibeVoice-ASR-7B` | self-hosted (GPU) |
+| Primary LLM ("Nurse Ana") | `llama-3.3-70b-versatile` | Groq API |
+| Specialist LLMs (×4) | `llama-3.1-8b-instant` | Groq API |
+| TTS (text → speech), demo | `gTTS` | Google API |
+| TTS (text → speech), prod target | `VibeVoice-Realtime-0.5B` | self-hosted (GPU) |
+
+Provider for the LLMs is overridable via `CONSTELLA_PROVIDER=openrouter`, which swaps Groq for OpenRouter-hosted Llama variants; the Gradio mic path still needs `GROQ_API_KEY` because OpenRouter doesn't expose audio transcription.
+
+**Other:**
 - **Language:** Python 3.11
-- **LLM provider:** Groq (primary) with OpenRouter fallback, toggled via `CONSTELLA_PROVIDER`
-- **Primary model:** `llama-3.3-70b-versatile` (Groq)
-- **Specialist model:** `llama-3.1-8b-instant` (Groq)
-- **Voice I/O:** Microsoft VibeVoice (`VibeVoice-ASR-7B` + `VibeVoice-Realtime-0.5B`) on GPU; Groq Whisper + gTTS as API fallbacks
 - **Schemas / validation:** Pydantic v2
 - **Fan-out:** stdlib `concurrent.futures.ThreadPoolExecutor` (no graph framework)
 - **Demo UI:** Gradio
