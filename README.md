@@ -46,11 +46,11 @@ See [SETUP.md](SETUP.md) for the VibeVoice local-GPU path and the full bootstrap
                                                                     │
                                                                     ▼
 ┌───────────┐    audio    ┌──────────────┐  text    ┌──────────────────────────────┐
-│  Patient  │────────────▶│  VibeVoice    │─────────▶│   Primary Conversational     │
-│  speaks   │             │  ASR-7B       │          │   Agent (Llama 3.3 70B)      │
-│  (mic or  │             │  (50+ langs,  │          │   "Nurse Ana"                │
-│   file)   │             │  code-switch  │          │   - manages dialogue state   │
-└───────────┘             │  native)      │          │   - generates next utterance │
+│  Patient  │────────────▶│  ASR:        │─────────▶│   Primary Conversational     │
+│  speaks   │             │  Whisper     │          │   Agent (Llama 3.3 70B)      │
+│  (mic or  │             │  large-v3    │          │   "Nurse Ana"                │
+│   file)   │             │  turbo       │          │   - manages dialogue state   │
+└───────────┘             │  (Groq API)  │          │   - generates next utterance │
       ▲                   └──────────────┘          └──────────────┬───────────────┘
       │                                                            │
       │                                            (parallel fan-out)
@@ -81,10 +81,9 @@ See [SETUP.md](SETUP.md) for the VibeVoice local-GPU path and the full bootstrap
       │                                      │
       │                                      ▼
       │                       ┌──────────────────────────────┐
-      │                       │  VibeVoice Realtime-0.5B TTS │
-      │                       │  (~300 ms first audible      │
-      │                       │  latency, multilingual,      │
-      │                       │  Spanish experimental)        │
+      │                       │  TTS: gTTS (Google API)      │
+      │                       │  multilingual, including     │
+      │                       │  Spanish and English          │
       │                       └──────────────┬───────────────┘
       │                                      │
       └──────────────────────────────────────┘
@@ -93,6 +92,7 @@ See [SETUP.md](SETUP.md) for the VibeVoice local-GPU path and the full bootstrap
 - The **primary** is a stateful Llama 3.3 70B on Groq. It holds the conversation, follows the discharge-plan checklist, and produces a single short nurse utterance per turn.
 - The **four specialists** are stateless Llama 3.1 8B calls. They fan out in parallel via a `ThreadPoolExecutor` so the specialist tax is `max(specialist_latencies)`, not their sum.
 - The **orchestrator** merges the four verdicts into one of four actions with the priority order `Escalate > Rewrite > AppendFollowup > Emit`. Safety beats correctness beats completeness beats friendliness.
+- **VibeVoice is the production target, not the current demo path.** The Gradio demo uses Groq-hosted Whisper and Google gTTS so it runs on any laptop with a Groq key. Scaffolding for `VibeVoice-ASR-7B` and `VibeVoice-Realtime-0.5B` lives in `constella/asr.py` and `constella/tts.py` but isn't wired into the UI yet — see [Tradeoffs](#tradeoffs-and-what-id-do-with-more-time).
 
 See [how_it_works.md](how_it_works.md) for the full design rationale.
 
