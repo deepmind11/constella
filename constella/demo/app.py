@@ -5,9 +5,9 @@ Voice pipeline:
 
 Text fallback also available (type as patient, read nurse reply).
 
-VibeVoice end-to-end (the production story) is in asr.py / tts.py and requires
-local GPU + repo clone per SETUP.md. This demo uses the API-only path so it
-works on any machine with a Groq key.
+This demo uses the API-only path (Groq for ASR, gTTS for TTS) so it works on
+any machine with a Groq key. Swapping in VibeVoice for self-hosted GPU
+inference is listed as future work in the README Tradeoffs.
 
 Usage:
     constella-demo               # port 7860

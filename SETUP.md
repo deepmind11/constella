@@ -94,7 +94,7 @@ python demo/vibevoice_asr_inference_from_file.py \
   --audio_files <some_audio.wav>
 ```
 
-If you're on Mac and can't run the 7B ASR locally, Constella will fall back to `distil-whisper-large-v3` for development. The README acknowledges this and frames VibeVoice-ASR as the production target.
+If you're on Mac and can't run the 7B ASR locally, the Gradio demo still works — it uses Groq-hosted Whisper for ASR via API, so no local GPU is required. VibeVoice-ASR-7B is documented as the production target for future self-hosted deployments.
 
 ## Step 5 — Verify Constella imports
 
@@ -141,14 +141,8 @@ This runs all 5 scenarios, scores them with the rubric, and writes to `constella
 
 ## Troubleshooting
 
-### "VibeVoice import fails on Mac"
-Mac doesn't have CUDA. VibeVoice-Realtime-0.5B should work on MPS (Apple Silicon). If it doesn't:
-1. Make sure you're on PyTorch 2.5+ with MPS support
-2. Try `PYTORCH_ENABLE_MPS_FALLBACK=1 python ...`
-3. Fall back to `distil-whisper` for ASR by setting `CONSTELLA_ASR_BACKEND=distil_whisper` in `.env`
-
 ### "Groq API rate limit"
-Free tier is 30 req/min. Eval harness rate-limits itself; if you hit issues, set `CONSTELLA_GROQ_RPM=20` in `.env`.
+The free tier has a tokens-per-minute ceiling that a full eval run can hit in bursts. The eval harness pauses between scenarios by default (30 s on Groq, 0 s on OpenRouter). To change it, set `CONSTELLA_EVAL_INTER_SCENARIO_SLEEP=45` in `.env`.
 
 ### "Specialist returns malformed JSON"
 Llama 3.1 8B occasionally drifts off-schema. The specialist code wraps Pydantic with retries. If it fails 3x, the specialist returns a "no verdict" result and the orchestrator logs a warning.

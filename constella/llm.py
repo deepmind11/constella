@@ -108,11 +108,6 @@ def _client_singleton() -> OpenAI:
     return _client
 
 
-def groq_client() -> OpenAI:
-    """Backwards-compatible alias. Returns whichever client is active."""
-    return _client_singleton()
-
-
 # ---- Chat primitives ------------------------------------------------------
 
 

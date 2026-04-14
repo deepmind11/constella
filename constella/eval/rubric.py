@@ -14,7 +14,7 @@ This module provides programmatic (rule-based) scoring. An LLM-as-judge variant
 from __future__ import annotations
 
 from constella.orchestrator import TurnResult
-from constella.schemas import AppendFollowup, Emit, Escalate, Rewrite, TurnScore
+from constella.schemas import AppendFollowup, Escalate, TurnScore
 
 import os as _os
 

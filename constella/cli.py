@@ -7,7 +7,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
 
@@ -73,8 +72,6 @@ def main() -> int:
         if state.escalated:
             print("\n*** Call escalated to human RN. Session ended. ***")
             return 0
-
-    return 0
 
 
 if __name__ == "__main__":

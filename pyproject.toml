@@ -1,7 +1,7 @@
 [project]
 name = "constella"
 version = "0.1.0"
-description = "A multi-agent voice constellation for bilingual healthcare follow-up calls, with first-class English-Spanish code-switching support. Built on Microsoft VibeVoice."
+description = "A multi-agent voice constellation for bilingual healthcare follow-up calls, with first-class English-Spanish code-switching support."
 authors = [
     { name = "Harshit Ghosh", email = "harshitghosh@gmail.com" }
 ]
@@ -10,37 +10,12 @@ license = { text = "MIT" }
 requires-python = ">=3.11,<3.13"
 
 dependencies = [
-    # Core orchestration
     "pydantic>=2.7",
-    # LLM clients (Groq for fast inference, OpenAI SDK for OpenRouter fallback)
-    "groq>=0.11",
     "openai>=1.50",
-    "anthropic>=0.39",
-    # Audio I/O
-    "soundfile>=0.12",
-    "numpy>=1.26",
-    "librosa>=0.10",
-    # Demo UI + voice
     "gradio>=4.40",
     "gtts>=2.5",
-    # Eval / scoring
-    "pandas>=2.2",
-    "tabulate>=0.9",
-    # Logging / config
     "python-dotenv>=1.0",
-    "structlog>=24.1",
-    "rich>=13.7",
-    # Testing
     "pytest>=8.0",
-    "pytest-asyncio>=0.23",
-]
-
-[project.optional-dependencies]
-# VibeVoice is installed separately as an editable git checkout, see SETUP.md
-# These extras are for the local fallback ASR/TTS in case VibeVoice setup hits friction
-fallback = [
-    "openai-whisper>=20240930",
-    "elevenlabs>=1.8",
 ]
 
 [project.scripts]
@@ -56,5 +31,4 @@ build-backend = "hatchling.build"
 packages = ["constella"]
 
 [tool.pytest.ini_options]
-asyncio_mode = "auto"
 testpaths = ["tests"]

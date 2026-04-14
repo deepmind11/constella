@@ -99,7 +99,7 @@ def _run_specialists(
             name = futures[fut]
             try:
                 results[name] = fut.result()
-            except Exception as e:
+            except Exception:
                 log.exception("specialist %s failed", name)
                 results[name] = None
     return (

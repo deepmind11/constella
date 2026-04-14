@@ -92,7 +92,7 @@ See [SETUP.md](SETUP.md) for the VibeVoice local-GPU path and the full bootstrap
 - The **primary** is a stateful Llama 3.3 70B on Groq. It holds the conversation, follows the discharge-plan checklist, and produces a single short nurse utterance per turn.
 - The **four specialists** are stateless Llama 3.1 8B calls. They fan out in parallel via a `ThreadPoolExecutor` so the specialist tax is `max(specialist_latencies)`, not their sum.
 - The **orchestrator** merges the four verdicts into one of four actions with the priority order `Escalate > Rewrite > AppendFollowup > Emit`. Safety beats correctness beats completeness beats friendliness.
-- **VibeVoice is the production target, not the current demo path.** The Gradio demo uses Groq-hosted Whisper and Google gTTS so it runs on any laptop with a Groq key. Scaffolding for `VibeVoice-ASR-7B` and `VibeVoice-Realtime-0.5B` lives in `constella/asr.py` and `constella/tts.py` but isn't wired into the UI yet — see [Tradeoffs](#tradeoffs-and-what-id-do-with-more-time).
+- **VibeVoice is the production target, not the current demo path.** The Gradio demo uses Groq-hosted Whisper and Google gTTS so it runs on any laptop with a Groq key. Swapping in `VibeVoice-ASR-7B` and `VibeVoice-Realtime-0.5B` for self-hosted GPU deployments is listed in [Tradeoffs](#tradeoffs-and-what-id-do-with-more-time).
 
 See [how_it_works.md](how_it_works.md) for the full design rationale.
 
@@ -176,8 +176,6 @@ constella/
 │   ├── orchestrator.py       # parallel fan-out + merge → NextAction
 │   ├── schemas.py            # Pydantic schemas for state + verdicts
 │   ├── llm.py                # provider-agnostic chat + structured_chat
-│   ├── asr.py                # VibeVoice ASR + distil-whisper fallback
-│   ├── tts.py                # VibeVoice TTS
 │   ├── cli.py                # terminal chat (constella-chat)
 │   ├── specialists/          # 4 verifier agents
 │   │   ├── language.py
@@ -199,7 +197,7 @@ constella/
 
 - **Re-verify rewrites.** The MVP trusts the rewrite after a medication-harm flag; a production version would re-run the specialists on the rewrite and escalate on a second failure.
 - **Expand the scenario set.** 5 scenarios is enough to exercise every branch of the orchestrator; a real eval would extend into the low hundreds with LLM-as-judge scoring and a sampled clinician spot-check.
-- **Wire the Gradio demo through VibeVoice.** Today the demo uses Groq Whisper + gTTS for portability; the VibeVoice path lives in `asr.py` / `tts.py` but isn't invoked from the UI yet.
+- **Wire the Gradio demo through VibeVoice.** The demo uses Groq Whisper + gTTS for portability; adding a self-hosted VibeVoice ASR/TTS path (`VibeVoice-ASR-7B` + `VibeVoice-Realtime-0.5B`) would be the next step for GPU deployments.
 - **Observability.** Per-call structured logs exist but there's no dashboard. A lightweight trace viewer (LangSmith or a local Streamlit board) would make the specialist verdicts legible at a glance.
 - **More specialists.** Privacy/PHI redaction, scheduling, and social-determinants specialists are the obvious next additions.
 
