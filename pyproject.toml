@@ -6,7 +6,7 @@ authors = [
     { name = "Harshit Ghosh", email = "harshitghosh@gmail.com" }
 ]
 readme = "README.md"
-license = { text = "Apache-2.0" }
+license = { text = "MIT" }
 requires-python = ">=3.11,<3.13"
 
 dependencies = [
