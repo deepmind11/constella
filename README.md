@@ -1,32 +1,47 @@
 # Constella
 
-> A multi-agent voice constellation for bilingual healthcare follow-up calls, with first-class English-Spanish code-switching support. Targets Microsoft VibeVoice for voice I/O, with API-based fallbacks (Groq Whisper + gTTS) for the portable demo.
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Python](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
 
-**License:** Apache 2.0
+> Multi-agent voice constellation for bilingual healthcare follow-up calls, with first-class English-Spanish code-switching support.
 
 ---
 
-## What this is
+## What This Is
 
-Constella is a miniature, runnable, evaluable implementation of a Polaris-style safety constellation for voice-based healthcare AI agents. One stateful primary conversational agent is flanked by four specialist verifier agents (medication, labs and vitals, language detection, escalation) running in parallel after every primary turn. The voice I/O layer targets **Microsoft VibeVoice** for both ASR (`VibeVoice-ASR-7B`) and TTS (`VibeVoice-Realtime-0.5B`) on GPU deployments; the portable Gradio demo falls back to Groq Whisper (ASR) and gTTS (TTS) for Mac-friendly dev.
+Constella is a runnable implementation of a Polaris-style safety constellation for voice-based healthcare AI. One stateful primary conversational agent ("Nurse Ana") drives the dialogue; four stateless specialist verifier agents (language, medication, labs, escalation) run in parallel after every primary turn, and an orchestrator merges their verdicts into a single next action.
 
-The use case is intentionally narrow: post-discharge follow-up calls for a Type 2 diabetic patient who code-switches between English and Spanish.
+The use case is a post-discharge follow-up call with a bilingual Type 2 diabetic patient who code-switches between English and Spanish mid-utterance. The voice I/O layer targets [Microsoft VibeVoice](https://github.com/microsoft/VibeVoice) for GPU deployments; the portable Gradio demo falls back to Groq Whisper (ASR) and gTTS (TTS).
 
-## Background
+## Quick Start
 
-Two research observations motivated this project:
+```bash
+# Clone
+git clone https://github.com/deepmind11/constella.git
+cd constella
 
-1. **Bilingual healthcare AI drives measurable clinical outcomes.** The [WellSpan colorectal cancer screening study](https://www.medrxiv.org/content/10.1101/2024.12.16.24318586v1) (Bhimani and Baker, 2024) found a 2.6x higher FIT-test opt-in rate among Spanish-speaking patients when contacted in their primary language. Published multilingual voice agents (e.g., Polaris 3.0) report 99.83% Spanish accuracy across 14 languages with real-time auto-switch.
-2. **Intra-utterance code-switching** — where a bilingual speaker mixes English and Spanish *within a single sentence* ("¿Tomo el inhaler dos veces al día, but only when I feel short of breath?") — is endemic in U.S. Latino patient populations and is not explicitly treated in the published literature on healthcare voice agents.
+# Install
+uv venv --python 3.11
+source .venv/bin/activate
+uv pip install -e .
 
-Microsoft's [VibeVoice](https://github.com/microsoft/VibeVoice) is the first open-source ASR model with native intra-utterance code-switching support across 50+ languages, requiring no language parameter. Constella explores what a Polaris-style safety constellation looks like when built end-to-end on VibeVoice, and whether the architecture handles code-switching gracefully at low latency.
+# Configure — add your Groq API key (free tier works)
+echo 'GROQ_API_KEY=your_key_here' > .env
+
+# Launch the Gradio voice demo (mic or text input)
+uv run constella-demo
+
+# Or run the eval harness
+uv run constella-eval
+```
+
+See [SETUP.md](SETUP.md) for the VibeVoice local-GPU path and the full bootstrap.
 
 ## Architecture
 
 ```
                                                        ┌──────────────────────────┐
                                                        │  Eval harness            │
-                                                       │  (15 scenarios)          │
+                                                       │  (5 scenarios)           │
                                                        └────────────┬─────────────┘
                                                                     │
                                                                     ▼
@@ -40,17 +55,17 @@ Microsoft's [VibeVoice](https://github.com/microsoft/VibeVoice) is the first ope
       │                                                            │
       │                                            (parallel fan-out)
       │                                                            │
-      │            ┌──────────────────┬──────────────────┬─────────┴────────┬──────────────────┐
-      │            │                  │                  │                  │                  │
-      │            ▼                  ▼                  ▼                  ▼                  ▼
-      │     ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-      │     │ Language     │  │ Medication   │  │ Labs & Vitals│  │ Escalation   │  │ (future:     │
-      │     │ Specialist   │  │ Specialist   │  │ Specialist   │  │ Specialist   │  │ Privacy /    │
-      │     │ - lang ID    │  │ - dosage     │  │ - extract    │  │ - red-flag   │  │ EHR / etc)   │
-      │     │ - code-switch│  │ - drug-drug  │  │   numbers    │  │   symptoms   │  │              │
-      │     │ - route to   │  │ - timing     │  │ - check range│  │ - human XFR  │  │              │
-      │     │   ES/EN/MIX  │  │              │  │              │  │              │  │              │
-      │     └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  └──────────────┘
+      │            ┌──────────────────┬──────────────────┬─────────┴────────┐
+      │            │                  │                  │                  │
+      │            ▼                  ▼                  ▼                  ▼
+      │     ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+      │     │ Language     │  │ Medication   │  │ Labs & Vitals│  │ Escalation   │
+      │     │ Specialist   │  │ Specialist   │  │ Specialist   │  │ Specialist   │
+      │     │ - lang ID    │  │ - dosage     │  │ - extract    │  │ - red-flag   │
+      │     │ - code-switch│  │ - drug-drug  │  │   numbers    │  │   symptoms   │
+      │     │ - route to   │  │ - timing     │  │ - check range│  │ - human XFR  │
+      │     │   ES/EN/MIX  │  │              │  │              │  │              │
+      │     └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘
       │            │                  │                 │                 │
       │            └──────────────────┴─────────────────┴─────────────────┘
       │                                       │
@@ -60,6 +75,7 @@ Microsoft's [VibeVoice](https://github.com/microsoft/VibeVoice) is the first ope
       │                       │  specialist verdicts.         │
       │                       │  - If escalation: hard XFR    │
       │                       │  - If med error: rewrite turn │
+      │                       │  - If labs followup: append   │
       │                       │  - Else: emit primary's turn  │
       │                       └──────────────┬───────────────┘
       │                                      │
@@ -74,55 +90,24 @@ Microsoft's [VibeVoice](https://github.com/microsoft/VibeVoice) is the first ope
       └──────────────────────────────────────┘
 ```
 
-## The 4 specialist agents
+- The **primary** is a stateful Llama 3.3 70B on Groq. It holds the conversation, follows the discharge-plan checklist, and produces a single short nurse utterance per turn.
+- The **four specialists** are stateless Llama 3.1 8B calls. They fan out in parallel via a `ThreadPoolExecutor` so the specialist tax is `max(specialist_latencies)`, not their sum.
+- The **orchestrator** merges the four verdicts into one of four actions with the priority order `Escalate > Rewrite > AppendFollowup > Emit`. Safety beats correctness beats completeness beats friendliness.
+
+See [how_it_works.md](how_it_works.md) for the full design rationale.
+
+## Specialists
 
 | Specialist | Role | Model |
 |---|---|---|
-| **Language** | Per-utterance language ID + intra-utterance code-switch segmentation. Routes downstream prompts to ES, EN, or MIX. | Llama 3.1 8B (Groq) |
-| **Medication** | Verifies dosage, timing, contraindications against the synthetic patient's med list. | Llama 3.1 8B (Groq) |
-| **Labs & Vitals** | Extracts numeric values from patient utterances ("My sugar was 240 this morning") and flags out-of-range. | Llama 3.1 8B (Groq) |
-| **Escalation** | Detects red-flag symptoms (chest pain, severe hypoglycemia, DKA, suicidal ideation) and triggers human handoff. | Llama 3.1 8B (Groq) |
+| **Language** | Per-utterance language ID + intra-utterance code-switch segmentation. Routes downstream prompts to EN, ES, or MIX. | Llama 3.1 8B |
+| **Medication** | Verifies dosage, timing, and contraindications in the nurse's draft reply against the patient's med list. | Llama 3.1 8B |
+| **Labs & Vitals** | Extracts numeric values from patient utterances ("my sugar was 240 this morning") and flags out-of-range. | Llama 3.1 8B |
+| **Escalation** | Detects red-flag symptoms (chest pain, severe hypo/hyperglycemia, stroke signs, suicidal ideation) and triggers human handoff. | Llama 3.1 8B |
 
-## Quick start
+Every specialist returns a Pydantic-validated verdict. Malformed JSON is retried up to three times with a repair hint; persistent failures surface as "no verdict" and the orchestrator logs a warning.
 
-See [SETUP.md](SETUP.md) for the full bootstrap. The short version:
-
-```bash
-# 1. Clone Constella
-git clone https://github.com/deepmind11/constella.git
-cd constella
-
-# 2. Set up Python env with uv
-uv venv
-source .venv/bin/activate
-uv pip install -e .
-
-# 3. Clone and install VibeVoice as a sibling repo
-mkdir -p external && cd external
-git clone https://github.com/microsoft/VibeVoice.git
-cd VibeVoice
-pip install -e .[streamingtts]
-bash demo/download_experimental_voices.sh   # downloads Spanish experimental speakers
-cd ../..
-
-# 4. Set Groq API key
-echo 'GROQ_API_KEY=your_key_here' > .env
-
-# 5. Launch the Gradio voice demo (speak or type as the patient)
-uv run constella-demo
-
-# 6. Run a single scenario through the eval harness
-uv run constella-eval --scenario 03
-
-# 7. Run the full eval harness
-uv run constella-eval
-```
-
-## Use case
-
-Post-discharge follow-up call for **María González**, a fictional 58-year-old Type 2 diabetic patient recently discharged with a metformin + insulin regimen. María prefers Spanish but switches to English for medication names — a pattern documented in the bilingual healthcare communication literature. Her medication list, lab values, and discharge summary are synthetic and committed in `eval/scenarios/patient_maria.json`.
-
-## Eval harness
+## Eval Harness
 
 5 synthetic post-discharge scenarios, one per bucket:
 
@@ -134,43 +119,86 @@ Post-discharge follow-up call for **María González**, a fictional 58-year-old 
 | 04 | `04_high_glucose_followup.json` | Labs follow-up |
 | 05 | `05_chest_pain_escalation.json` | Escalation / emergency |
 
-Each turn is scored on 5 dimensions: medical accuracy, harm rate, language correctness, escalation correctness, latency.
+Each turn is scored on 5 dimensions: `medical_accuracy`, `harm_rate`, `language_correctness`, `escalation_correctness`, and `latency_pass` (2.2 s end-to-end budget).
 
-Results table (will be filled in as the eval runs):
+The synthetic patient is **María González**, a 58-year-old on metformin + insulin glargine + lisinopril + atorvastatin. Her full profile lives at `constella/eval/scenarios/patient_maria.json`.
 
-```
-| Bucket                        | Single LLM | Constella | Δ      |
-|-------------------------------|-----------:|----------:|-------:|
-| English-only baseline         |        TBD |       TBD | TBD    |
-| Spanish-only baseline         |        TBD |       TBD | TBD    |
-| Code-switching                |        TBD |       TBD | TBD    |
-| Labs follow-up                |        TBD |       TBD | TBD    |
-| Escalation / emergency        |        TBD |       TBD | TBD    |
-| Median latency                |        TBD |       TBD | TBD    |
+Run the full sweep:
+
+```bash
+uv run constella-eval
 ```
 
-## Hardware
+Results write to `constella/eval/results/<timestamp>.md` (human-readable report) and `.json` (machine-readable score dump).
 
-- **Dev (Mac M-series):** VibeVoice-Realtime-0.5B for TTS runs on M4 Pro at realtime per [Microsoft's docs](https://github.com/microsoft/VibeVoice/blob/main/docs/vibevoice-realtime-0.5b.md). For ASR, the dev path uses a smaller fallback (distil-whisper-large-v3) with VibeVoice-ASR-7B as the production target.
-- **Prod / cloud:** A single A10 or T4 with VibeVoice-ASR-7B for end-to-end VibeVoice inference. NVIDIA Deep Learning Container 24.10+ recommended per Microsoft docs.
+## Tech Stack
 
-## What this is NOT
+- **Language:** Python 3.11
+- **LLM provider:** Groq (primary) with OpenRouter fallback, toggled via `CONSTELLA_PROVIDER`
+- **Primary model:** `llama-3.3-70b-versatile` (Groq)
+- **Specialist model:** `llama-3.1-8b-instant` (Groq)
+- **Voice I/O:** Microsoft VibeVoice (`VibeVoice-ASR-7B` + `VibeVoice-Realtime-0.5B`) on GPU; Groq Whisper + gTTS as API fallbacks
+- **Schemas / validation:** Pydantic v2
+- **Fan-out:** stdlib `concurrent.futures.ThreadPoolExecutor` (no graph framework)
+- **Demo UI:** Gradio
+- **Packaging:** uv + hatchling
 
-- **Production-grade.** A 2-day build cannot match the operational rigor of a $3.5B unicorn running on H200s with TensorRT-LLM, NVIDIA NIM, and SageMaker HyperPod.
-- **A medical product.** Constella is a non-diagnostic engineering demo with synthetic patients. **No PHI ever touches the system.**
-- **A novel research contribution.** Constella builds on the constellation pattern from Mukherjee et al. (Polaris, 2024), the multilingual code-switching capability from Microsoft VibeVoice (2025), and the WellSpan colorectal study from Bhimani and Baker (2024).
+## Why VibeVoice
 
-## Open Questions
+VibeVoice-ASR-7B is one of the few openly available ASR models that handles intra-utterance code-switching without a language parameter. That property matters for U.S. Latino patient populations, where patients commonly use English for clinical terms ("inhaler", "metformin") inside otherwise-Spanish sentences. On the TTS side, VibeVoice-Realtime-0.5B reports ~300 ms first-audible latency on a single T4 or M4 Pro.
 
-1. How do production-scale healthcare voice agents handle intra-utterance code-switching at the ASR and prompt-routing layers?
-2. Does the Language Specialist routing pattern (per-utterance language ID → route primary prompt to ES/EN/MIX) hold up under code-switching registers beyond Spanglish?
-3. At what specialist count does the parallelization overhead begin to outweigh latency savings relative to a serial specialist pipeline?
+## Why Four Specialists
 
-## References
+Pushing all safety checks into the primary's system prompt works until the first hard contradiction between checks (e.g., "stay in Spanish" vs. "ask clinical questions precisely"). Giving each check its own prompt, schema, and retry loop means the orchestrator can merge them with an explicit, auditable priority order.
 
-1. **Polaris 1.0:** Mukherjee, S. et al. (2024). *Polaris: A Safety-focused LLM Constellation Architecture for Healthcare.* arXiv:2403.13313. https://arxiv.org/abs/2403.13313
-2. **WellSpan colorectal Spanish study:** Bhimani, M. and Baker, J. (2024). *Multilingual AI Care Agent for Colorectal Cancer Screening.* medRxiv 2024.12.16.24318586. https://www.medrxiv.org/content/10.1101/2024.12.16.24318586v1
-3. **Polaris 3.0 announcement:** Hippocratic AI (2025). *Polaris 3.0: A 4.2 Trillion Parameter Suite of 22 LLMs.* https://hippocraticai.com/polaris-3/
-4. **VibeVoice:** Microsoft (2025). *VibeVoice: Open-Source Frontier Voice AI.* https://github.com/microsoft/VibeVoice
-5. **RWE-LLM evaluation framework:** Hippocratic AI (2025). *Real-World Evaluation of LLMs in Healthcare.* medRxiv 10.1101/2025.03.17.25324157.
+Fan-out is parallel, not pipelined: serializing four ~150 ms specialist calls adds ~600 ms per turn; parallelizing drops the tax to the slowest single call (~200 ms), which keeps the turn under the 2.2 s budget.
 
+## Project Structure
+
+```
+constella/
+├── README.md
+├── SETUP.md
+├── how_it_works.md
+├── pyproject.toml
+├── constella/
+│   ├── primary.py            # Nurse Ana (stateful 70B)
+│   ├── orchestrator.py       # parallel fan-out + merge → NextAction
+│   ├── schemas.py            # Pydantic schemas for state + verdicts
+│   ├── llm.py                # provider-agnostic chat + structured_chat
+│   ├── asr.py                # VibeVoice ASR + distil-whisper fallback
+│   ├── tts.py                # VibeVoice TTS
+│   ├── cli.py                # terminal chat (constella-chat)
+│   ├── specialists/          # 4 verifier agents
+│   │   ├── language.py
+│   │   ├── medication.py
+│   │   ├── labs.py
+│   │   └── escalation.py
+│   ├── eval/
+│   │   ├── rubric.py         # 5-dimension per-turn scoring
+│   │   ├── run_eval.py       # constella-eval entrypoint
+│   │   ├── scenarios/        # 5 scenario JSONs + patient_maria.json
+│   │   └── results/          # run reports
+│   └── demo/
+│       └── app.py            # Gradio voice UI (constella-demo)
+└── tests/
+    └── test_schemas.py       # schema + orchestrator merge tests (no network)
+```
+
+## Tradeoffs and What I'd Do With More Time
+
+- **Re-verify rewrites.** The MVP trusts the rewrite after a medication-harm flag; a production version would re-run the specialists on the rewrite and escalate on a second failure.
+- **Expand the scenario set.** 5 scenarios is enough to exercise every branch of the orchestrator; a real eval would extend into the low hundreds with LLM-as-judge scoring and a sampled clinician spot-check.
+- **Wire the Gradio demo through VibeVoice.** Today the demo uses Groq Whisper + gTTS for portability; the VibeVoice path lives in `asr.py` / `tts.py` but isn't invoked from the UI yet.
+- **Observability.** Per-call structured logs exist but there's no dashboard. A lightweight trace viewer (LangSmith or a local Streamlit board) would make the specialist verdicts legible at a glance.
+- **More specialists.** Privacy/PHI redaction, scheduling, and social-determinants specialists are the obvious next additions.
+
+## Acknowledgements
+
+- Polaris safety-constellation pattern — Mukherjee et al., [arXiv:2403.13313](https://arxiv.org/abs/2403.13313)
+- Microsoft VibeVoice — [github.com/microsoft/VibeVoice](https://github.com/microsoft/VibeVoice)
+- Groq LPU inference for Llama 3.1 / 3.3
+
+## License
+
+Apache 2.0.
