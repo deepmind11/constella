@@ -31,7 +31,7 @@ source .venv/bin/activate
 uv pip install -e .
 ```
 
-This installs LangGraph, Pydantic, Groq client, Gradio, and the eval/test deps. It does NOT yet install VibeVoice — that goes in step 4.
+This installs Pydantic, the Groq / OpenAI clients, Gradio, and the eval/test deps. It does NOT yet install VibeVoice — that goes in step 4.
 
 ## Step 3 — Set environment variables
 
@@ -101,41 +101,43 @@ If you're on Mac and can't run the 7B ASR locally, Constella will fall back to `
 ```bash
 cd /Users/hgz/Projects/constella
 source .venv/bin/activate
-uv run python -c "from constella.orchestrator import build_graph; print('Constella imports OK')"
+uv run python -c "from constella.orchestrator import run_turn; print('Constella imports OK')"
 ```
 
 ## Step 6 — Run the smoke test
 
 ```bash
-uv run pytest tests/test_specialists.py -v
+uv run pytest tests/test_schemas.py -v
 ```
 
-This runs each specialist against a known input/output pair. If all 4 specialists pass, the LLM plumbing works.
+This runs schema validation and the orchestrator merge-logic tests (no network calls, safe to run without API keys). If all tests pass, the Pydantic plumbing and merge priority are wired up correctly.
 
 ## Step 7 — Run a single end-to-end scenario
 
 ```bash
-uv run python -m constella.demo.app --scenario eval/scenarios/03_codeswitch_metformin.json
+uv run constella-eval --scenario 03
 ```
 
-This walks through one synthetic post-discharge call end-to-end. Expected output:
-- Whisper/VibeVoice ASR transcription of the patient utterance
+This walks through one synthetic post-discharge call end-to-end (the `03_code_switch_inhaler` scenario by default). Expected output per turn:
 - Language specialist verdict (with code-switch segments)
 - Primary agent's response
-- 4 specialist verdicts in parallel
-- Orchestrator decision (emit / rewrite / escalate)
-- VibeVoice TTS audio file
-- Latency log entry
+- 4 specialist verdicts run in parallel
+- Orchestrator decision (emit / rewrite / append / escalate)
+- Latency breakdown
+
+Or run the Gradio voice demo to interact live:
+
+```bash
+uv run constella-demo
+```
 
 ## Step 8 — Run the full eval
 
 ```bash
-uv run constella-eval --output eval/results/run_$(date +%Y%m%d_%H%M%S)
+uv run constella-eval
 ```
 
-This runs all 15 scenarios, scores them with the rubric, and writes:
-- `eval_results.csv` — per-turn detailed scores
-- `eval_summary.md` — aggregated by bucket, ready to paste into the README
+This runs all 5 scenarios, scores them with the rubric, and writes to `constella/eval/results/<timestamp>.md` (human-readable report) and `constella/eval/results/<timestamp>.json` (machine-readable score dump).
 
 ## Troubleshooting
 

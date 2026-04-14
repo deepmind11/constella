@@ -11,7 +11,6 @@ requires-python = ">=3.11,<3.13"
 
 dependencies = [
     # Core orchestration
-    "langgraph>=0.2.0",
     "pydantic>=2.7",
     # LLM clients (Groq for fast inference, OpenAI SDK for OpenRouter fallback)
     "groq>=0.11",
@@ -45,6 +44,7 @@ fallback = [
 ]
 
 [project.scripts]
+constella-chat = "constella.cli:main"
 constella-eval = "constella.eval.run_eval:main"
 constella-demo = "constella.demo.app:main"
 

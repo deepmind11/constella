@@ -1,6 +1,6 @@
 # Constella
 
-> A multi-agent voice constellation for bilingual healthcare follow-up calls, with first-class English-Spanish code-switching support. Built on Microsoft VibeVoice end-to-end.
+> A multi-agent voice constellation for bilingual healthcare follow-up calls, with first-class English-Spanish code-switching support. Targets Microsoft VibeVoice for voice I/O, with API-based fallbacks (Groq Whisper + gTTS) for the portable demo.
 
 **License:** Apache 2.0
 
@@ -8,7 +8,7 @@
 
 ## What this is
 
-Constella is a miniature, runnable, evaluable implementation of a Polaris-style safety constellation for voice-based healthcare AI agents. One stateful primary conversational agent is flanked by four specialist verifier agents (medication, labs and vitals, language detection, escalation) running in parallel after every primary turn. The whole pipeline uses **Microsoft VibeVoice** for both ASR (`VibeVoice-ASR-7B`) and TTS (`VibeVoice-Realtime-0.5B`).
+Constella is a miniature, runnable, evaluable implementation of a Polaris-style safety constellation for voice-based healthcare AI agents. One stateful primary conversational agent is flanked by four specialist verifier agents (medication, labs and vitals, language detection, escalation) running in parallel after every primary turn. The voice I/O layer targets **Microsoft VibeVoice** for both ASR (`VibeVoice-ASR-7B`) and TTS (`VibeVoice-Realtime-0.5B`) on GPU deployments; the portable Gradio demo falls back to Groq Whisper (ASR) and gTTS (TTS) for Mac-friendly dev.
 
 The use case is intentionally narrow: post-discharge follow-up calls for a Type 2 diabetic patient who code-switches between English and Spanish.
 
@@ -32,8 +32,8 @@ Microsoft's [VibeVoice](https://github.com/microsoft/VibeVoice) is the first ope
                                                                     ▼
 ┌───────────┐    audio    ┌──────────────┐  text    ┌──────────────────────────────┐
 │  Patient  │────────────▶│  VibeVoice    │─────────▶│   Primary Conversational     │
-│  speaks   │             │  ASR-7B       │          │   Agent (Llama 3.1 70B)      │
-│  (mic or  │             │  (50+ langs,  │          │   "Nurse Constella"          │
+│  speaks   │             │  ASR-7B       │          │   Agent (Llama 3.3 70B)      │
+│  (mic or  │             │  (50+ langs,  │          │   "Nurse Ana"                │
 │   file)   │             │  code-switch  │          │   - manages dialogue state   │
 └───────────┘             │  native)      │          │   - generates next utterance │
       ▲                   └──────────────┘          └──────────────┬───────────────┘
@@ -108,10 +108,13 @@ cd ../..
 # 4. Set Groq API key
 echo 'GROQ_API_KEY=your_key_here' > .env
 
-# 5. Run a single scenario end-to-end
-uv run python -m constella.demo.app --scenario eval/scenarios/03_codeswitch_metformin.json
+# 5. Launch the Gradio voice demo (speak or type as the patient)
+uv run constella-demo
 
-# 6. Run the full eval harness
+# 6. Run a single scenario through the eval harness
+uv run constella-eval --scenario 03
+
+# 7. Run the full eval harness
 uv run constella-eval
 ```
 
@@ -121,25 +124,29 @@ Post-discharge follow-up call for **María González**, a fictional 58-year-old 
 
 ## Eval harness
 
-15 synthetic post-discharge scenarios in three buckets:
+5 synthetic post-discharge scenarios, one per bucket:
 
-- **English-only** (scenarios 01-05): baseline accuracy + latency
-- **Spanish-only** (scenarios 06-10): Spanish accuracy + latency
-- **Code-switching** (scenarios 11-13): the key bucket
-- **Escalation** (scenario 14): patient mentions chest pain in Spanish
-- **Medication safety** (scenario 15): patient asks about double-dosing in mixed language
+| # | Scenario file | Bucket |
+|---|---|---|
+| 01 | `01_english_baseline.json` | English-only baseline |
+| 02 | `02_spanish_baseline.json` | Spanish-only baseline |
+| 03 | `03_code_switch_inhaler.json` | Intra-utterance code-switching (Spanglish) |
+| 04 | `04_high_glucose_followup.json` | Labs follow-up |
+| 05 | `05_chest_pain_escalation.json` | Escalation / emergency |
 
 Each turn is scored on 5 dimensions: medical accuracy, harm rate, language correctness, escalation correctness, latency.
 
 Results table (will be filled in as the eval runs):
 
 ```
-| Bucket          | Single LLM | Constella | Δ      |
-|-----------------|-----------:|----------:|-------:|
-| English-only    |        TBD |       TBD | TBD    |
-| Spanish-only    |        TBD |       TBD | TBD    |
-| Code-switching  |        TBD |       TBD | TBD    |
-| Median latency  |        TBD |       TBD | TBD    |
+| Bucket                        | Single LLM | Constella | Δ      |
+|-------------------------------|-----------:|----------:|-------:|
+| English-only baseline         |        TBD |       TBD | TBD    |
+| Spanish-only baseline         |        TBD |       TBD | TBD    |
+| Code-switching                |        TBD |       TBD | TBD    |
+| Labs follow-up                |        TBD |       TBD | TBD    |
+| Escalation / emergency        |        TBD |       TBD | TBD    |
+| Median latency                |        TBD |       TBD | TBD    |
 ```
 
 ## Hardware

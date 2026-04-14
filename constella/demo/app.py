@@ -57,7 +57,6 @@ def _transcribe(audio_path: str) -> str:
             file=f,
             response_format="text",
         )
-    # Groq returns the text directly as a string in "text" response_format
     return str(resp).strip()
 
 
@@ -164,7 +163,6 @@ def build_ui() -> gr.Blocks:
                     sources=["microphone"],
                     type="filepath",
                     label="Speak",
-                    show_download_button=False,
                 )
                 text_in = gr.Textbox(
                     placeholder="or type here...",
@@ -184,7 +182,6 @@ def build_ui() -> gr.Blocks:
                     label="Voice response",
                     autoplay=True,
                     type="filepath",
-                    show_download_button=False,
                     interactive=False,
                 )
                 nurse_out = gr.Textbox(label="Text transcript", lines=4, interactive=False)

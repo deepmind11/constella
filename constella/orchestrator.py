@@ -27,9 +27,8 @@ Implements the Polaris-style fan-out:
     |   Emit      (default)                      |
     +-----------------+
 
-We use a thread pool for fan-out instead of LangGraph here so the orchestration
-stays one file, easy to read in an interview. A LangGraph version lives in
-`orchestrator_lg.py` (same logic, graph-shaped) for the side-by-side demo.
+We use a thread pool for fan-out instead of a graph framework so the orchestration
+stays in a single file and is easy to follow end-to-end.
 """
 from __future__ import annotations
 

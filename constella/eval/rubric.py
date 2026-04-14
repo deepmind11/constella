@@ -8,8 +8,8 @@ Each turn is scored on five dimensions, four of them 0-3:
     escalation_correctness  — did we escalate iff escalation was needed?
     latency_pass            — bool, total latency < LATENCY_BUDGET_MS
 
-This module provides programmatic (rule-based) scoring; an LLM-as-judge variant
-lives in `judge.py` and is optional, gated on having an Anthropic key.
+This module provides programmatic (rule-based) scoring. An LLM-as-judge variant
+(gated on an Anthropic key) is planned as a follow-up but not yet implemented.
 """
 from __future__ import annotations
 
