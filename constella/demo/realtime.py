@@ -119,6 +119,14 @@ def _build_verdict(result) -> str:
     return json.dumps(verdict, indent=2, default=str)
 
 
+# Module-level conversation state — single-user demo. Keeping it here (rather
+# than in gr.State) is deliberate: threading state through AdditionalOutputs
+# triggers a state_change event on every turn, which re-enters the
+# on_additional_outputs handler and silently drops subsequent UI updates.
+# For multi-user prod we'd key this by fastrtc session_id.
+_state: ConversationState | None = None
+
+
 def _ensure_state() -> ConversationState:
     global _state
     if _state is None:
