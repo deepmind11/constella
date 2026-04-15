@@ -205,7 +205,18 @@ def build_ui() -> gr.Blocks:
         with gr.Row():
             with gr.Column(scale=1):
                 gr.Markdown("### You (María)")
-                webrtc = WebRTC(mode="send-receive", modality="audio", label="Speak")
+                webrtc = WebRTC(
+                    mode="send-receive",
+                    modality="audio",
+                    label="Speak",
+                    full_screen=False,
+                    height=240,
+                    button_labels={
+                        "start": "Record",
+                        "stop": "Stop",
+                        "waiting": "Ana is replying…",
+                    },
+                )
                 text_in = gr.Textbox(
                     placeholder="or type here...",
                     label="Text",
