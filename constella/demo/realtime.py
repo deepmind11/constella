@@ -119,29 +119,26 @@ def _build_verdict(result) -> str:
     return json.dumps(verdict, indent=2, default=str)
 
 
-def _compute_turn(state: ConversationState | None, patient_text: str):
-    state = state or ConversationState(patient=_load_patient())
-    result = run_turn(state, patient_text)
-    return result
+def _ensure_state() -> ConversationState:
+    global _state
+    if _state is None:
+        _state = ConversationState(patient=_load_patient())
+    return _state
 
 
-def _voice_handler(audio, _webrtc_value, state_dict):
+def _voice_handler(audio, _webrtc_value):
     """fastrtc handler — runs on every VAD pause.
 
     Signature note: fastrtc prepends a `"__webrtc_value__"` placeholder when
     the WebRTC component's value is passed as a string (see
     fastrtc/tracks.py:set_args). After the audio replacement, the args become
-    (audio_tuple, webrtc_value, *real_inputs) — so we accept the middle slot
-    explicitly and discard it.
+    (audio_tuple, webrtc_value). No other inputs are wired to the stream, so
+    the handler takes exactly two positional args.
     """
     from fastrtc import AdditionalOutputs
+    global _state
 
-    state = (
-        ConversationState.model_validate(state_dict)
-        if state_dict
-        else ConversationState(patient=_load_patient())
-    )
-
+    state = _ensure_state()
     sample_rate, np_audio = audio
     wav_path = numpy_to_wav_tempfile(sample_rate, np_audio)
     try:
@@ -154,7 +151,8 @@ def _voice_handler(audio, _webrtc_value, state_dict):
         return
 
     log.info("patient: %s", patient_text)
-    result = _compute_turn(state, patient_text)
+    result = run_turn(state, patient_text)
+    _state = result.state
     log.info(
         "nurse [%s, %.0f ms]: %s",
         result.action.kind,
@@ -164,34 +162,30 @@ def _voice_handler(audio, _webrtc_value, state_dict):
 
     reply_lang = _detect_reply_language(result.nurse_text)
 
-    # Emit text updates first so the UI shows the reply while audio streams.
     yield AdditionalOutputs(
         result.nurse_text,
         _build_verdict(result),
         _format_transcript(result.state),
-        result.state.model_dump(),
     )
 
     for pcm_chunk in stream_tts(result.nurse_text, language=reply_lang):
         yield cartesia_pcm_to_numpy(pcm_chunk, TTS_SAMPLE_RATE)
 
 
-def _text_handler(patient_text: str, state_dict):
+def _text_handler(patient_text: str):
     """Text-only fallback path: no audio playback, just text updates."""
+    global _state
     if not patient_text or not patient_text.strip():
-        return "", "{}", "_(start of call)_", state_dict
+        state = _ensure_state()
+        return "", "{}", _format_transcript(state)
 
-    state = (
-        ConversationState.model_validate(state_dict)
-        if state_dict
-        else ConversationState(patient=_load_patient())
-    )
-    result = _compute_turn(state, patient_text.strip())
+    state = _ensure_state()
+    result = run_turn(state, patient_text.strip())
+    _state = result.state
     return (
         result.nurse_text,
         _build_verdict(result),
         _format_transcript(result.state),
-        result.state.model_dump(),
     )
 
 
@@ -206,8 +200,6 @@ def build_ui() -> gr.Blocks:
             "> **Voice path:** click **Record** and speak; Ana answers the moment you pause.  \n"
             "> **Text path:** type below and press Enter."
         )
-
-        state = gr.State(value=None)
 
         with gr.Row():
             with gr.Column(scale=1):
@@ -257,27 +249,25 @@ def build_ui() -> gr.Blocks:
         # Voice path — audio in, audio out, text/verdict/transcript as additional outputs.
         webrtc.stream(
             fn=ReplyOnPause(_voice_handler),
-            inputs=[webrtc, state],
+            inputs=[webrtc],
             outputs=[webrtc],
             time_limit=60,
         )
         webrtc.on_additional_outputs(
-            lambda nt, v, t, s: (nt, v, t, s),
-            outputs=[nurse_text, verdict_out, transcript, state],
-            queue=False,
-            show_progress="hidden",
+            lambda nt, v, t: (nt, v, t),
+            outputs=[nurse_text, verdict_out, transcript],
         )
 
         # Text path (no audio).
         text_in.submit(
             _text_handler,
-            inputs=[text_in, state],
-            outputs=[nurse_text, verdict_out, transcript, state],
+            inputs=[text_in],
+            outputs=[nurse_text, verdict_out, transcript],
         )
         send_btn.click(
             _text_handler,
-            inputs=[text_in, state],
-            outputs=[nurse_text, verdict_out, transcript, state],
+            inputs=[text_in],
+            outputs=[nurse_text, verdict_out, transcript],
         )
 
     return demo
