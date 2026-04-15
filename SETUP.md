@@ -40,6 +40,11 @@ Create `.env` in the project root:
 ```bash
 cat > .env << 'EOF'
 GROQ_API_KEY=your_groq_key_here
+# Required for the realtime demo (constella-realtime); not used by the legacy
+# push-to-talk demo (constella-demo) or the eval harness.
+CARTESIA_API_KEY=your_cartesia_key_here
+# Optional: override the default Cartesia voice (UUID from play.cartesia.ai/voices)
+# CARTESIA_VOICE_ID=
 ANTHROPIC_API_KEY=optional_for_llm_judge_eval
 HF_HOME=/Users/hgz/.cache/huggingface
 EOF
