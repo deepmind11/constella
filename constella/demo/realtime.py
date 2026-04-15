@@ -125,8 +125,15 @@ def _compute_turn(state: ConversationState | None, patient_text: str):
     return result
 
 
-def _voice_handler(audio, state_dict):
-    """fastrtc handler — runs on every VAD pause."""
+def _voice_handler(audio, _webrtc_value, state_dict):
+    """fastrtc handler — runs on every VAD pause.
+
+    Signature note: fastrtc prepends a `"__webrtc_value__"` placeholder when
+    the WebRTC component's value is passed as a string (see
+    fastrtc/tracks.py:set_args). After the audio replacement, the args become
+    (audio_tuple, webrtc_value, *real_inputs) — so we accept the middle slot
+    explicitly and discard it.
+    """
     from fastrtc import AdditionalOutputs
 
     state = (
