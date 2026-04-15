@@ -16,12 +16,16 @@ dependencies = [
     "gtts>=2.5",
     "python-dotenv>=1.0",
     "pytest>=8.0",
+    "fastrtc[vad]>=0.0.20",
+    "cartesia[websockets]>=2.0",
+    "numpy>=1.26",
 ]
 
 [project.scripts]
 constella-chat = "constella.cli:main"
 constella-eval = "constella.eval.run_eval:main"
 constella-demo = "constella.demo.app:main"
+constella-realtime = "constella.demo.realtime:main"
 
 [build-system]
 requires = ["hatchling"]
