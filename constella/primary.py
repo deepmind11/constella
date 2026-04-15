@@ -30,7 +30,7 @@ The discharge follow-up checklist for THIS patient will be provided in the user 
 
 def build_user_prompt(state: ConversationState, last_patient_text: str) -> str:
     history_lines = []
-    for turn in state.history[-6:]:  # last 3 exchanges
+    for turn in state.history[-20:]:  # last 20 turns (~10 exchanges)
         speaker = "Patient" if turn.speaker == "patient" else "Nurse Ana"
         history_lines.append(f"{speaker}: {turn.text}")
     history_block = "\n".join(history_lines) if history_lines else "(start of call)"
